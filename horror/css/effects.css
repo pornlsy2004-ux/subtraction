@@ -1,0 +1,247 @@
+/* ============================================================================
+   《九百九十九》—— effects.css
+   视觉后期特效层样式：CRT 扫描线、颗粒噪点、径向暗角、色差、故障、闪光。
+   全部 pointer-events:none；GPU 友好（仅用 transform / opacity / filter）。
+   JS 通过 --fear (0..1) 与 --fx-intensity 实时调强度。
+   prefers-reduced-motion 与 .reduce-motion 下禁用/弱化动态特效。
+   ============================================================================ */
+
+/* 所有特效层通用：铺满、不挡点击、限制在 #effects-layer 内 */
+.fx-scanlines,
+.fx-noise,
+.fx-vignette,
+.fx-aberration,
+.fx-glitch,
+.fx-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;     /* 永不拦截交互 */
+  z-index: 1;
+  will-change: opacity, transform;
+}
+
+/* ----------------------------------------------------------------------------
+   1. CRT 扫描线 .fx-scanlines
+   repeating-linear-gradient 细密横线 + 缓慢垂直滚动
+   ---------------------------------------------------------------------------- */
+.fx-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, calc(0.18 * var(--fx-intensity, 1))) 3px,
+    rgba(0, 0, 0, calc(0.18 * var(--fx-intensity, 1))) 4px
+  );
+  background-size: 100% 4px;
+  /* 强度随 fear 略增 */
+  opacity: calc(0.5 + 0.5 * var(--fear, 0));
+  mix-blend-mode: multiply;
+  animation: scanline-roll 8s linear infinite;
+}
+/* 叠加一道缓慢扫过的亮带，模拟 CRT 刷新 */
+.fx-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.025) 50%,
+    transparent 100%);
+  height: 30%;
+  animation: scanline-sweep 6s linear infinite;
+}
+@keyframes scanline-roll {
+  from { background-position-y: 0; }
+  to   { background-position-y: 4px; }
+}
+@keyframes scanline-sweep {
+  from { transform: translateY(-120%); }
+  to   { transform: translateY(420%); }
+}
+
+/* ----------------------------------------------------------------------------
+   2. 颗粒噪点 .fx-noise
+   纯 CSS 程序化噪点（SVG feTurbulence 内联 data-uri，无外部文件）。
+   JS 也可往该层挂 canvas；这里给 CSS 兜底。
+   ---------------------------------------------------------------------------- */
+.fx-noise {
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
+<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/>\
+<feColorMatrix type='saturate' values='0'/></filter>\
+<rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+  background-size: 160px 160px;
+  opacity: calc((0.05 + 0.12 * var(--fear, 0)) * var(--fx-intensity, 1));
+  mix-blend-mode: overlay;
+  animation: noise-jitter 0.6s steps(3) infinite;
+}
+@keyframes noise-jitter {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-4px, 3px); }
+  66%  { transform: translate(3px, -2px); }
+  100% { transform: translate(-2px, -3px); }
+}
+
+/* ----------------------------------------------------------------------------
+   3. 径向暗角 .fx-vignette
+   强度由 --fear 控制：越恐惧，暗角越收紧、越黑
+   ---------------------------------------------------------------------------- */
+.fx-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent calc(38% - 22% * var(--fear, 0)),
+    rgba(0, 0, 0, calc(0.45 + 0.45 * var(--fear, 0))) 100%
+  );
+  mix-blend-mode: multiply;
+  /* 缓慢呼吸式收缩，加深窒息感（高 fear 时更明显） */
+  animation: vignette-breathe 7s ease-in-out infinite;
+}
+/* 边缘血色渗透：高 fear 时出现 */
+.fx-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    color-mix(in srgb, var(--blood) 40%, transparent) 130%);
+  opacity: calc(var(--fear, 0) * 0.6);
+  mix-blend-mode: screen;
+}
+@keyframes vignette-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+/* JS 触发的一次性暗角脉冲（Effects.vignettePulse）。在该层加 .pulse */
+.fx-vignette.pulse {
+  animation: vignette-pulse 0.9s var(--ease, ease) 1;
+}
+@keyframes vignette-pulse {
+  0%   { filter: brightness(1); }
+  30%  { filter: brightness(0.45); }
+  100% { filter: brightness(1); }
+}
+
+/* ----------------------------------------------------------------------------
+   4. 色差错位 .fx-aberration
+   红/青边缘错位，制造视觉不适。强度随 fear。
+   依赖 JS 把场景内容投到该层；这里用 box-shadow / 边缘渐变近似全屏色差。
+   ---------------------------------------------------------------------------- */
+.fx-aberration {
+  mix-blend-mode: screen;
+  opacity: calc(var(--fear, 0) * 0.5 * var(--fx-intensity, 1));
+  background:
+    linear-gradient(90deg,
+      rgba(255, 0, 40, 0.05) 0%,
+      transparent 4%,
+      transparent 96%,
+      rgba(0, 200, 255, 0.05) 100%);
+  animation: aberration-shift 3.5s ease-in-out infinite;
+}
+@keyframes aberration-shift {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(calc(1px + 2px * var(--fear, 0))); }
+}
+
+/* ----------------------------------------------------------------------------
+   5. 故障 .fx-glitch
+   默认隐形；JS 加 .active（或 Effects.glitch(ms)）时短暂爆发。
+   错位条带 + 颜色闪烁 + 整层抖动。
+   ---------------------------------------------------------------------------- */
+.fx-glitch {
+  opacity: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 6px,
+      rgba(255, 0, 60, 0.06) 6px,
+      rgba(0, 255, 200, 0.06) 7px,
+      transparent 8px);
+  mix-blend-mode: screen;
+}
+.fx-glitch.active {
+  animation: glitch-burst 0.4s steps(2) infinite;
+  opacity: 1;
+}
+/* 也响应整层抖动（Effects.shake）：在 #effects-layer 或 #game 上加 .shake */
+.shake { animation: fx-shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes glitch-burst {
+  0%   { transform: translate(0, 0);    clip-path: inset(0 0 0 0); }
+  20%  { transform: translate(-6px, 2px); clip-path: inset(12% 0 40% 0); }
+  40%  { transform: translate(5px, -3px); clip-path: inset(60% 0 8% 0); }
+  60%  { transform: translate(-3px, 4px); clip-path: inset(30% 0 50% 0); }
+  80%  { transform: translate(4px, -2px); clip-path: inset(8% 0 70% 0); }
+  100% { transform: translate(0, 0);    clip-path: inset(0 0 0 0); }
+}
+@keyframes fx-shake {
+  10%, 90% { transform: translate(-2px, 1px); }
+  20%, 80% { transform: translate(3px, -2px); }
+  30%, 50%, 70% { transform: translate(-5px, 3px); }
+  40%, 60% { transform: translate(5px, -3px); }
+}
+
+/* ----------------------------------------------------------------------------
+   6. 全屏闪光 .fx-flash
+   默认透明；JS 加 .active 触发一次淡出闪光（Effects.flash(color)）。
+   颜色经 --flash-color 注入，默认惨白。
+   ---------------------------------------------------------------------------- */
+.fx-flash {
+  background: var(--flash-color, #fff);
+  opacity: 0;
+  z-index: 5;               /* 闪光位于特效层最上 */
+  mix-blend-mode: screen;
+}
+.fx-flash.active {
+  animation: flash-fade 0.5s var(--ease, ease-out) 1;
+}
+@keyframes flash-fade {
+  0%   { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+/* 血色闪光变体 */
+.fx-flash.blood { --flash-color: var(--blood); mix-blend-mode: multiply; }
+
+/* ----------------------------------------------------------------------------
+   7. 减少动态 / 性能降级
+   ---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .fx-scanlines,
+  .fx-scanlines::after,
+  .fx-noise,
+  .fx-vignette,
+  .fx-aberration,
+  .fx-glitch,
+  .fx-glitch.active,
+  .fx-flash.active,
+  .shake {
+    animation: none !important;
+  }
+  /* 静态特效保留但弱化，避免画面完全失去氛围 */
+  .fx-noise      { opacity: calc(0.04 * var(--fx-intensity, 1)); }
+  .fx-aberration { opacity: 0; }
+  .fx-glitch     { opacity: 0; }
+}
+
+.reduce-motion .fx-scanlines,
+.reduce-motion .fx-scanlines::after,
+.reduce-motion .fx-noise,
+.reduce-motion .fx-vignette,
+.reduce-motion .fx-aberration,
+.reduce-motion .fx-glitch,
+.reduce-motion .fx-flash,
+.reduce-motion .shake {
+  animation: none !important;
+}
+.reduce-motion .fx-aberration,
+.reduce-motion .fx-glitch { opacity: 0 !important; }
+
+/* 用户在设置里关闭特效：JS 加 body.fx-off */
+.fx-off .fx-scanlines,
+.fx-off .fx-noise,
+.fx-off .fx-aberration,
+.fx-off .fx-glitch { display: none; }
+.fx-off .fx-vignette { opacity: 0.3; animation: none; }

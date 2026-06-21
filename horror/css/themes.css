@@ -1,0 +1,174 @@
+/* ============================================================================
+   《九百九十九》—— themes.css
+   27 章配色主题。引擎给 #game 或 body 加 class `chapter-1` … `chapter-27`，
+   各主题覆盖 6 个核心令牌：--bg / --fog / --ink / --blood / --glow / --accent
+   （部分章节附加 --fear 基线与色调氛围）。
+
+   下沉递进总思路（越深越异常）：
+     第 1–7 章   现实裂缝：冷暗的灰、青、蓝。接近正常，仅一丝不祥。
+     第 8–14 章  潜意识下沉：暗红、惨绿、瘀紫渗入，色彩开始病态。
+     第 15–21 章 直面核心：更饱和的血色、毒绿、尸蓝、锈橙，强烈不安。
+     第 22–27 章 终局深渊：极端的纯黑、血色、惨白、虚空——颜色趋于崩解。
+   每章可辨识又彼此协调（共享深黑基底 + 单一主导色相位移）。
+   选择器同时匹配 #game.chapter-N 与 body.chapter-N，确保引擎任一挂法都生效。
+   ============================================================================ */
+
+/* -------- 第一阶段：现实裂缝（1–7）冷暗、克制、近乎正常 -------- */
+
+.chapter-1, #game.chapter-1 {            /* 下沉：冷灰蓝，最接近日常 */
+  --bg: #050507; --fog: #14161d; --ink: #c9c9d0;
+  --blood: #7a1f24; --glow: #4a6b78; --accent: #9aa4b0; --fear: 0.04;
+}
+.chapter-2, #game.chapter-2 {            /* 走廊：略深的钢蓝 */
+  --bg: #04060a; --fog: #121821; --ink: #c2c6cf;
+  --blood: #76202a; --glow: #466574; --accent: #8e98a6; --fear: 0.08;
+}
+.chapter-3, #game.chapter-3 {            /* 旧居：暖灰渐冷，木褐微光 */
+  --bg: #060507; --fog: #1a161a; --ink: #cdc7c0;
+  --blood: #7d2a26; --glow: #6a6150; --accent: #a39a8c; --fear: 0.12;
+}
+.chapter-4, #game.chapter-4 {            /* 雨夜：青蓝、湿冷 */
+  --bg: #03070a; --fog: #0f1a22; --ink: #bcc6cd;
+  --blood: #6e2230; --glow: #3f7384; --accent: #7f93a0; --fear: 0.16;
+}
+.chapter-5, #game.chapter-5 {            /* 雾林：冷绿灰开始渗入 */
+  --bg: #04070a; --fog: #14201c; --ink: #c0c8c2;
+  --blood: #6c2a2a; --glow: #4a7a66; --accent: #8a9a8e; --fear: 0.20;
+}
+.chapter-6, #game.chapter-6 {            /* 地窖：暗褐与铁锈 */
+  --bg: #060403; --fog: #1c1411; --ink: #c4bbb0;
+  --blood: #8a2820; --glow: #6e5840; --accent: #9c8b78; --fear: 0.24;
+}
+.chapter-7, #game.chapter-7 {            /* 静电：灰白噪点、失真冷调 */
+  --bg: #050506; --fog: #18191b; --ink: #cfcfd2;
+  --blood: #7a2630; --glow: #5a6a72; --accent: #aab0b6; --fear: 0.28;
+}
+
+/* -------- 第二阶段：潜意识下沉（8–14）暗红/惨绿/瘀紫渗入，病态 -------- */
+
+.chapter-8, #game.chapter-8 {            /* 镜厅：瘀紫与冷银 */
+  --bg: #06040a; --fog: #1a1426; --ink: #c6bfd0;
+  --blood: #7e2440; --glow: #6a5a8a; --accent: #9a8eb0; --fear: 0.32;
+}
+.chapter-9, #game.chapter-9 {            /* 病房：惨绿荧光，消毒水气 */
+  --bg: #03060a; --fog: #0f1c1a; --ink: #c2cfc5;
+  --blood: #5e3030; --glow: #4f9a78; --accent: #88b09a; --fear: 0.36;
+}
+.chapter-10, #game.chapter-10 {          /* 血脉：暗红主导，温热而病态 */
+  --bg: #08040a; --fog: #240f15; --ink: #d0bcc0;
+  --blood: #a02430; --glow: #7a4050; --accent: #b07880; --fear: 0.40;
+}
+.chapter-11, #game.chapter-11 {          /* 深井：尸蓝下沉、寒意 */
+  --bg: #03060c; --fog: #0e1826; --ink: #b8c4d2;
+  --blood: #5c2438; --glow: #3a6e92; --accent: #7a92ac; --fear: 0.44;
+}
+.chapter-12, #game.chapter-12 {          /* 蛀蚀：腐黄与暗褐 */
+  --bg: #07060a; --fog: #1e1a10; --ink: #cac4ac;
+  --blood: #8a3220; --glow: #8a7a3a; --accent: #b0a070; --fear: 0.48;
+}
+.chapter-13, #game.chapter-13 {          /* 阁楼：尘紫、陈旧、窒闷 */
+  --bg: #08070a; --fog: #1f1a22; --ink: #c8c0c6;
+  --blood: #802838; --glow: #6a5878; --accent: #9c8ea0; --fear: 0.52;
+}
+.chapter-14, #game.chapter-14 {          /* 教堂：冷金与瘀蓝，神圣崩坏 */
+  --bg: #04050a; --fog: #15182a; --ink: #cac6b8;
+  --blood: #6e2a3a; --glow: #9a7a40; --accent: #b0a880; --fear: 0.56;
+}
+
+/* -------- 第三阶段：直面核心（15–21）饱和血色/毒绿/锈橙，强烈不安 -------- */
+
+.chapter-15, #game.chapter-15 {          /* 地铁：锈橙与尘黑，幽闭 */
+  --bg: #07050a; --fog: #221610; --ink: #ccc0b4;
+  --blood: #a8341c; --glow: #b06a2a; --accent: #c89060; --fear: 0.60;
+}
+.chapter-16, #game.chapter-16 {          /* 毒园：浓郁毒绿，腐败的生机 */
+  --bg: #03070a; --fog: #0e2216; --ink: #bcd0bc;
+  --blood: #4e3a1e; --glow: #3aa860; --accent: #84c090; --fear: 0.64;
+}
+.chapter-17, #game.chapter-17 {          /* 深海：极暗的尸蓝、巨大压迫 */
+  --bg: #01050c; --fog: #08182a; --ink: #aec2d6;
+  --blood: #4a2440; --glow: #2a82b8; --accent: #6aa0c8; --fear: 0.68;
+}
+.chapter-18, #game.chapter-18 {          /* 血室：饱和血红主导 */
+  --bg: #0a0306; --fog: #2e0c12; --ink: #e0bcc0;
+  --blood: #c81e2c; --glow: #8a2838; --accent: #d06870; --fear: 0.72;
+}
+.chapter-19, #game.chapter-19 {          /* 蜡白：惨白与灰，失血的苍 */
+  --bg: #060608; --fog: #1e2026; --ink: #e6e4e0;
+  --blood: #8a2a30; --glow: #9aa0a8; --accent: #c4c8cc; --fear: 0.76;
+}
+.chapter-20, #game.chapter-20 {          /* 灼绿：刺目的荧光毒绿，神经质 */
+  --bg: #02080a; --fog: #0a2620; --ink: #c4e0d0;
+  --blood: #5a2030; --glow: #20d088; --accent: #70e0a8; --fear: 0.80;
+}
+.chapter-21, #game.chapter-21 {          /* 锈狱：暗血与铁锈交织 */
+  --bg: #080304; --fog: #260e0a; --ink: #d0b8b0;
+  --blood: #b82818; --glow: #9a5028; --accent: #c08058; --fear: 0.84;
+}
+
+/* -------- 第四阶段：终局深渊（22–27）纯黑/血色/惨白/虚空，颜色崩解 -------- */
+
+.chapter-22, #game.chapter-22 {          /* 虚空：近乎全黑，微弱冷光残留 */
+  --bg: #010102; --fog: #0a0a0e; --ink: #a0a0a8;
+  --blood: #5a1820; --glow: #303a44; --accent: #6a6e76; --fear: 0.88;
+}
+.chapter-23, #game.chapter-23 {          /* 血潮：深黑底上唯有血红涌动 */
+  --bg: #060001; --fog: #1c0406; --ink: #d8a8ac;
+  --blood: #d01824; --glow: #6a1018; --accent: #b04048; --fear: 0.90;
+}
+.chapter-24, #game.chapter-24 {          /* 惨白：刺目的白吞噬一切 */
+  --bg: #08080a; --fog: #2a2c30; --ink: #f2f0ee;
+  --blood: #a01e26; --glow: #c0c4c8; --accent: #e0e2e4; --fear: 0.92;
+}
+.chapter-25, #game.chapter-25 {          /* 崩解：黑红惨白交错，色彩失稳 */
+  --bg: #030004; --fog: #18060c; --ink: #e0d4d6;
+  --blood: #e01820; --glow: #802030; --accent: #c06870; --fear: 0.95;
+}
+.chapter-26, #game.chapter-26 {          /* 临界：几乎无色，仅余血与白的对峙 */
+  --bg: #000000; --fog: #0c0608; --ink: #f6f4f2;
+  --blood: #e8101a; --glow: #4a0a10; --accent: #a02028; --fear: 0.98;
+}
+.chapter-27, #game.chapter-27 {          /* 终局 · 999：纯粹的黑与一点血光，虚空 */
+  --bg: #000000; --fog: #060000; --ink: #ffffff;
+  --blood: #ff0a14; --glow: #1a0204; --accent: #8a0008; --fear: 1;
+}
+
+/* 同样支持 body 上挂 class（与上方等价覆盖）。 */
+body.chapter-1 { --bg:#050507; --fog:#14161d; --ink:#c9c9d0; --blood:#7a1f24; --glow:#4a6b78; --accent:#9aa4b0; --fear:.04; }
+body.chapter-2 { --bg:#04060a; --fog:#121821; --ink:#c2c6cf; --blood:#76202a; --glow:#466574; --accent:#8e98a6; --fear:.08; }
+body.chapter-3 { --bg:#060507; --fog:#1a161a; --ink:#cdc7c0; --blood:#7d2a26; --glow:#6a6150; --accent:#a39a8c; --fear:.12; }
+body.chapter-4 { --bg:#03070a; --fog:#0f1a22; --ink:#bcc6cd; --blood:#6e2230; --glow:#3f7384; --accent:#7f93a0; --fear:.16; }
+body.chapter-5 { --bg:#04070a; --fog:#14201c; --ink:#c0c8c2; --blood:#6c2a2a; --glow:#4a7a66; --accent:#8a9a8e; --fear:.20; }
+body.chapter-6 { --bg:#060403; --fog:#1c1411; --ink:#c4bbb0; --blood:#8a2820; --glow:#6e5840; --accent:#9c8b78; --fear:.24; }
+body.chapter-7 { --bg:#050506; --fog:#18191b; --ink:#cfcfd2; --blood:#7a2630; --glow:#5a6a72; --accent:#aab0b6; --fear:.28; }
+body.chapter-8 { --bg:#06040a; --fog:#1a1426; --ink:#c6bfd0; --blood:#7e2440; --glow:#6a5a8a; --accent:#9a8eb0; --fear:.32; }
+body.chapter-9 { --bg:#03060a; --fog:#0f1c1a; --ink:#c2cfc5; --blood:#5e3030; --glow:#4f9a78; --accent:#88b09a; --fear:.36; }
+body.chapter-10 { --bg:#08040a; --fog:#240f15; --ink:#d0bcc0; --blood:#a02430; --glow:#7a4050; --accent:#b07880; --fear:.40; }
+body.chapter-11 { --bg:#03060c; --fog:#0e1826; --ink:#b8c4d2; --blood:#5c2438; --glow:#3a6e92; --accent:#7a92ac; --fear:.44; }
+body.chapter-12 { --bg:#07060a; --fog:#1e1a10; --ink:#cac4ac; --blood:#8a3220; --glow:#8a7a3a; --accent:#b0a070; --fear:.48; }
+body.chapter-13 { --bg:#08070a; --fog:#1f1a22; --ink:#c8c0c6; --blood:#802838; --glow:#6a5878; --accent:#9c8ea0; --fear:.52; }
+body.chapter-14 { --bg:#04050a; --fog:#15182a; --ink:#cac6b8; --blood:#6e2a3a; --glow:#9a7a40; --accent:#b0a880; --fear:.56; }
+body.chapter-15 { --bg:#07050a; --fog:#221610; --ink:#ccc0b4; --blood:#a8341c; --glow:#b06a2a; --accent:#c89060; --fear:.60; }
+body.chapter-16 { --bg:#03070a; --fog:#0e2216; --ink:#bcd0bc; --blood:#4e3a1e; --glow:#3aa860; --accent:#84c090; --fear:.64; }
+body.chapter-17 { --bg:#01050c; --fog:#08182a; --ink:#aec2d6; --blood:#4a2440; --glow:#2a82b8; --accent:#6aa0c8; --fear:.68; }
+body.chapter-18 { --bg:#0a0306; --fog:#2e0c12; --ink:#e0bcc0; --blood:#c81e2c; --glow:#8a2838; --accent:#d06870; --fear:.72; }
+body.chapter-19 { --bg:#060608; --fog:#1e2026; --ink:#e6e4e0; --blood:#8a2a30; --glow:#9aa0a8; --accent:#c4c8cc; --fear:.76; }
+body.chapter-20 { --bg:#02080a; --fog:#0a2620; --ink:#c4e0d0; --blood:#5a2030; --glow:#20d088; --accent:#70e0a8; --fear:.80; }
+body.chapter-21 { --bg:#080304; --fog:#260e0a; --ink:#d0b8b0; --blood:#b82818; --glow:#9a5028; --accent:#c08058; --fear:.84; }
+body.chapter-22 { --bg:#010102; --fog:#0a0a0e; --ink:#a0a0a8; --blood:#5a1820; --glow:#303a44; --accent:#6a6e76; --fear:.88; }
+body.chapter-23 { --bg:#060001; --fog:#1c0406; --ink:#d8a8ac; --blood:#d01824; --glow:#6a1018; --accent:#b04048; --fear:.90; }
+body.chapter-24 { --bg:#08080a; --fog:#2a2c30; --ink:#f2f0ee; --blood:#a01e26; --glow:#c0c4c8; --accent:#e0e2e4; --fear:.92; }
+body.chapter-25 { --bg:#030004; --fog:#18060c; --ink:#e0d4d6; --blood:#e01820; --glow:#802030; --accent:#c06870; --fear:.95; }
+body.chapter-26 { --bg:#000000; --fog:#0c0608; --ink:#f6f4f2; --blood:#e8101a; --glow:#4a0a10; --accent:#a02028; --fear:.98; }
+body.chapter-27 { --bg:#000000; --fog:#060000; --ink:#ffffff; --blood:#ff0a14; --glow:#1a0204; --accent:#8a0008; --fear:1; }
+
+/* ----------------------------------------------------------------------------
+   章节氛围微差：深层章节叠加全局色调滤镜，强化"异常"质感。
+   作用于场景画面层 #scene-canvas（不影响 UI 文本可读性）。
+   ---------------------------------------------------------------------------- */
+.chapter-18 #scene-canvas, body.chapter-18 #scene-canvas { filter: saturate(1.15) contrast(1.05); }
+.chapter-20 #scene-canvas, body.chapter-20 #scene-canvas { filter: saturate(1.3) hue-rotate(-8deg); }
+.chapter-24 #scene-canvas, body.chapter-24 #scene-canvas { filter: brightness(1.1) contrast(1.1); }
+.chapter-25 #scene-canvas, body.chapter-25 #scene-canvas { filter: contrast(1.12) saturate(1.2); }
+.chapter-26 #scene-canvas, body.chapter-26 #scene-canvas { filter: contrast(1.2); }
+.chapter-27 #scene-canvas, body.chapter-27 #scene-canvas { filter: contrast(1.3) brightness(0.92); }

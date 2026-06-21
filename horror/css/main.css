@@ -1,0 +1,910 @@
+/* ============================================================================
+   《九百九十九》—— main.css
+   全局样式：reset、设计令牌、布局层级、引导幕、UI 组件、互动机制、响应式、无障碍
+   纯静态、无外链、无网络。中文注释。
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   1. RESET / NORMALIZE
+   ---------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;            /* 全屏体验，禁止滚动 */
+  background: var(--bg, #050507);
+  color: var(--ink, #c9c9d0);
+  font-family: var(--font-serif);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+  touch-action: manipulation;
+}
+
+/* 默认禁用文本选择，避免误选干扰沉浸感；解密类文本单独放开 */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+img,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ----------------------------------------------------------------------------
+   2. 设计令牌（CSS 自定义属性）
+   引擎/主题会按章节覆盖颜色令牌；此处定义默认值，所有组件只引用变量。
+   ---------------------------------------------------------------------------- */
+:root {
+  /* —— 配色令牌（默认 = 第 1 章冷暗基调，会被 themes.css / JS 覆盖）—— */
+  --bg:     #050507;   /* 背景：近乎纯黑 */
+  --fog:    #14161d;   /* 雾/次级面：冷灰蓝 */
+  --ink:    #c9c9d0;   /* 主文字：惨白偏冷 */
+  --blood:  #7a1f24;   /* 暗红点缀 */
+  --glow:   #4a6b78;   /* 冷青微光 */
+  --accent: #9aa4b0;   /* 强调色：冷调金属灰 */
+
+  /* —— 派生色（基于令牌的半透明态，便于组件统一引用）—— */
+  --ink-dim:   color-mix(in srgb, var(--ink) 55%, transparent);
+  --ink-faint: color-mix(in srgb, var(--ink) 22%, transparent);
+  --glow-soft: color-mix(in srgb, var(--glow) 40%, transparent);
+  --line:      color-mix(in srgb, var(--ink) 14%, transparent);
+  --panel:     color-mix(in srgb, var(--fog) 70%, #000 30%);
+
+  /* —— 字体栈（系统/本地字体，无外链）—— */
+  --font-serif: Georgia, "Times New Roman", "Songti SC", "STSong",
+                "SimSun", "Noto Serif CJK SC", serif;          /* 叙事：旧书感 */
+  --font-mono:  "Courier New", "Cascadia Code", Consolas,
+                "DejaVu Sans Mono", "Sarasa Mono SC", monospace; /* 系统/解密 */
+
+  /* —— 字号体系（rem，可在断点缩放）—— */
+  --fs-base:    clamp(15px, 1.6vw + 8px, 19px);
+  --fs-sm:      0.82rem;
+  --fs-lg:      1.35rem;
+  --fs-xl:      clamp(1.6rem, 4vw, 2.6rem);
+  --fs-title:   clamp(2.4rem, 9vw, 6rem);
+  --fs-count:   clamp(4rem, 22vw, 14rem);   /* 999 大字 */
+
+  /* —— 间距体系 —— */
+  --sp-1: 0.35rem;
+  --sp-2: 0.7rem;
+  --sp-3: 1.2rem;
+  --sp-4: 2rem;
+  --sp-5: 3.2rem;
+  --sp-6: 5rem;
+
+  /* —— 字距 —— */
+  --ls-tight:  0.01em;
+  --ls-wide:   0.18em;
+  --ls-vast:   0.5em;
+
+  /* —— 行宽（叙事阅读舒适上限）—— */
+  --measure: 34ch;
+
+  /* —— 动效时长（恐怖：缓慢）—— */
+  --t-slow:  1.6s;
+  --t-med:   0.6s;
+  --t-fast:  0.28s;
+  --ease:    cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* —— 恐惧/强度令牌（特效共享，JS 实时调）—— */
+  --fear: 0;          /* 0..1 综合恐惧 */
+  --fx-intensity: 1;  /* 特效全局倍率 */
+
+  /* —— z-index 层级体系 —— */
+  --z-canvas:       10;
+  --z-effects:      20;
+  --z-interaction:  30;
+  --z-ui:           40;
+  --z-hud:          45;
+  --z-overlay:      80;  /* 设置/完成等模态 */
+  --z-boot:         100; /* 引导幕最高 */
+}
+
+/* ----------------------------------------------------------------------------
+   3. 布局层级 —— #game 与各 layer
+   z 顺序：canvas < effects < interaction < ui
+   pointer-events：scene/effects 不挡点击；interaction/ui 接收
+   ---------------------------------------------------------------------------- */
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;            /* 移动端动态视口高度 */
+  overflow: hidden;
+  background: var(--bg);
+  isolation: isolate;       /* 建立独立层叠上下文，混合模式可控 */
+}
+
+#scene-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-canvas);
+  pointer-events: none;     /* 画面层不挡交互 */
+  display: block;
+}
+
+#effects-layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-effects);
+  pointer-events: none;     /* 特效覆盖层永不挡点击 */
+  overflow: hidden;
+}
+
+#interaction-layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-interaction);
+  pointer-events: auto;     /* 接收互动 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ui-layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-ui);
+  pointer-events: none;     /* 容器透传，子元素各自开启 */
+}
+
+/* UI 容器内可交互元素需重新开启点击 */
+#ui-layer .ui-btn,
+#ui-layer .ui-narrative,
+#ui-layer .ui-settings,
+#ui-layer .ui-complete,
+#ui-layer .ui-title,
+#ui-layer .ui-chapter-card,
+#ui-layer button,
+#ui-layer [role="dialog"] {
+  pointer-events: auto;
+}
+
+/* ----------------------------------------------------------------------------
+   4. 引导幕 #boot
+   全屏覆盖、最高层、深色、999 大字缓慢脉动；.boot-done 淡出退场
+   ---------------------------------------------------------------------------- */
+#boot {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-boot);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at center,
+      color-mix(in srgb, var(--fog) 30%, #000) 0%,
+      #020203 70%, #000 100%);
+  color: var(--ink);
+  opacity: 1;
+  transition: opacity 1.4s var(--ease);
+  will-change: opacity;
+}
+
+#boot-inner {
+  text-align: center;
+  animation: boot-breath 6s ease-in-out infinite;
+}
+
+#boot-count {
+  font-family: var(--font-serif);
+  font-size: var(--fs-count);
+  font-weight: 400;
+  letter-spacing: var(--ls-wide);
+  line-height: 1;
+  color: color-mix(in srgb, var(--ink) 75%, transparent);
+  text-shadow:
+    0 0 30px color-mix(in srgb, var(--glow) 30%, transparent),
+    0 0 80px color-mix(in srgb, var(--blood) 18%, transparent);
+  animation: boot-pulse 4.5s ease-in-out infinite;
+}
+
+#boot-line {
+  margin-top: var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-wide);
+  color: var(--ink-dim);
+  text-transform: none;
+  animation: boot-flicker 5s steps(1) infinite;
+}
+
+/* 退场：JS 加 .boot-done 后淡出并禁用点击 */
+#boot.boot-done,
+.boot-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes boot-pulse {
+  0%, 100% { opacity: 0.55; text-shadow: 0 0 28px color-mix(in srgb, var(--glow) 22%, transparent); }
+  50%      { opacity: 1;    text-shadow: 0 0 60px color-mix(in srgb, var(--glow) 45%, transparent),
+                                          0 0 120px color-mix(in srgb, var(--blood) 25%, transparent); }
+}
+@keyframes boot-breath {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.025); }
+}
+@keyframes boot-flicker {
+  0%, 92%, 100% { opacity: 0.7; }
+  94%           { opacity: 0.2; }
+  96%           { opacity: 0.9; }
+}
+
+/* ----------------------------------------------------------------------------
+   5. UI 组件
+   电影级恐怖排版：大量留白、缓慢动画、细腻字距、暗色微光
+   ---------------------------------------------------------------------------- */
+
+/* —— 通用淡入（UI 元素入场）—— */
+@keyframes ui-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* —— 标题画面 —— */
+.ui-title {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--sp-5);
+  padding: var(--sp-4);
+  background:
+    radial-gradient(ellipse at center,
+      transparent 30%,
+      color-mix(in srgb, #000 60%, transparent) 100%);
+  animation: ui-fade-in var(--t-slow) var(--ease) both;
+}
+.ui-title h1,
+.ui-title .title-main {
+  font-family: var(--font-serif);
+  font-size: var(--fs-title);
+  font-weight: 400;
+  letter-spacing: var(--ls-wide);
+  line-height: 1.05;
+  color: var(--ink);
+  text-shadow: 0 0 40px color-mix(in srgb, var(--glow) 28%, transparent);
+}
+.ui-title .title-sub {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-vast);
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+
+/* —— 章节过场卡 —— */
+.ui-chapter-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4);
+  background: linear-gradient(180deg,
+    #000 0%,
+    color-mix(in srgb, var(--bg) 80%, #000) 50%,
+    #000 100%);
+  animation: ui-fade-in var(--t-slow) var(--ease) both;
+}
+.ui-chapter-card .chapter-num {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-vast);
+  color: var(--accent);
+  opacity: 0.7;
+}
+.ui-chapter-card .chapter-title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 400;
+  letter-spacing: var(--ls-wide);
+  color: var(--ink);
+  text-shadow: 0 0 30px color-mix(in srgb, var(--blood) 22%, transparent);
+}
+.ui-chapter-card .chapter-summary {
+  max-width: var(--measure);
+  font-size: var(--fs-base);
+  color: var(--ink-dim);
+  line-height: 1.8;
+}
+
+/* —— HUD（低调置于边角）—— */
+.ui-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-hud);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-tight);
+  color: var(--ink-dim);
+  pointer-events: none;
+  mix-blend-mode: difference; /* 在任意背景上保持可读，强化诡异感 */
+}
+.ui-hud .hud-level   { color: var(--ink); opacity: 0.8; }
+.ui-hud .hud-chapter { opacity: 0.55; }
+.ui-hud .hud-progress {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.5;
+}
+
+/* —— 叙事文本（居中、舒适行高、限宽）—— */
+.ui-narrative {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5) var(--sp-4);
+  text-align: center;
+  background: radial-gradient(ellipse at center,
+    color-mix(in srgb, #000 35%, transparent) 0%,
+    color-mix(in srgb, #000 72%, transparent) 100%);
+}
+.ui-narrative p,
+.ui-narrative .line {
+  max-width: var(--measure);
+  margin: 0 auto var(--sp-3);
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  letter-spacing: var(--ls-tight);
+  color: var(--ink);
+  text-shadow: 0 1px 20px color-mix(in srgb, #000 60%, transparent);
+  opacity: 0;
+  animation: ui-fade-in 2s var(--ease) forwards;
+}
+/* 逐段递进延迟（引擎可加 style 覆盖；此处给前几段兜底） */
+.ui-narrative p:nth-child(1) { animation-delay: 0.2s; }
+.ui-narrative p:nth-child(2) { animation-delay: 1.2s; }
+.ui-narrative p:nth-child(3) { animation-delay: 2.2s; }
+.ui-narrative p:nth-child(4) { animation-delay: 3.2s; }
+.ui-narrative p:nth-child(n+5) { animation-delay: 4.2s; }
+
+/* —— 低语 / 角落隐藏文字 —— */
+.ui-whisper {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-wide);
+  color: color-mix(in srgb, var(--blood) 60%, var(--ink));
+  opacity: 0.16;
+  pointer-events: none;
+  max-width: 22ch;
+  line-height: 1.7;
+  filter: blur(0.3px);
+  animation: whisper-drift 9s ease-in-out infinite;
+}
+@keyframes whisper-drift {
+  0%, 100% { opacity: 0.1;  transform: translateY(0); }
+  50%      { opacity: 0.28; transform: translateY(-4px); }
+}
+
+/* —— 关卡完成过渡 —— */
+.ui-complete {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  text-align: center;
+  background: color-mix(in srgb, #000 78%, transparent);
+  animation: ui-fade-in var(--t-med) var(--ease) both;
+}
+.ui-complete .complete-mark {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  letter-spacing: var(--ls-wide);
+  color: var(--ink);
+  text-shadow: 0 0 40px var(--glow-soft);
+}
+.ui-complete .complete-sub {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--ink-dim);
+  letter-spacing: var(--ls-wide);
+}
+
+/* —— 设置面板（模态）—— */
+.ui-settings {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: color-mix(in srgb, #000 82%, transparent);
+  backdrop-filter: blur(3px);
+  animation: ui-fade-in var(--t-fast) var(--ease) both;
+}
+.ui-settings .settings-panel,
+.ui-settings > div {
+  width: min(420px, 92vw);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  box-shadow: 0 20px 80px color-mix(in srgb, #000 80%, transparent);
+}
+.ui-settings h2,
+.ui-settings .settings-title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 400;
+  letter-spacing: var(--ls-wide);
+  color: var(--ink);
+  margin-bottom: var(--sp-2);
+}
+.ui-settings label,
+.ui-settings .settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--ink-dim);
+  padding: var(--sp-1) 0;
+}
+.ui-settings input[type="range"] {
+  flex: 1;
+  accent-color: var(--glow);
+  background: transparent;
+}
+.ui-settings input[type="checkbox"] {
+  accent-color: var(--glow);
+  width: 18px;
+  height: 18px;
+}
+
+/* —— 致命错误样式 —— */
+.fatal {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-boot) + 10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  text-align: center;
+  background: #050405;
+  color: color-mix(in srgb, var(--blood) 70%, var(--ink));
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  letter-spacing: var(--ls-wide);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--blood) 50%, transparent);
+}
+.fatal::before {
+  content: "■";
+  font-size: 2rem;
+  opacity: 0.6;
+  animation: boot-flicker 3s steps(1) infinite;
+}
+
+/* ----------------------------------------------------------------------------
+   6. 通用按钮 .ui-btn / .itx-btn
+   极简暗色、克制微光、触摸友好
+   ---------------------------------------------------------------------------- */
+.ui-btn,
+.itx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 48px;            /* 触摸友好 */
+  min-width: 96px;
+  padding: var(--sp-2) var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  letter-spacing: var(--ls-wide);
+  color: var(--ink-dim);
+  background: color-mix(in srgb, var(--fog) 35%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  transition:
+    color var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+  -webkit-user-select: none;
+  user-select: none;
+}
+.ui-btn:hover,
+.itx-btn:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--glow) 60%, var(--line));
+  background: color-mix(in srgb, var(--fog) 55%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--glow) 25%, transparent),
+    0 0 24px color-mix(in srgb, var(--glow) 18%, transparent);
+}
+.ui-btn:active,
+.itx-btn:active {
+  transform: translateY(1px);
+}
+.ui-btn:disabled,
+.itx-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+/* 危险/不祥按钮变体 */
+.ui-btn.danger,
+.itx-btn.danger {
+  color: color-mix(in srgb, var(--blood) 60%, var(--ink));
+  border-color: color-mix(in srgb, var(--blood) 40%, var(--line));
+}
+.ui-btn.danger:hover,
+.itx-btn.danger:hover {
+  box-shadow: 0 0 24px color-mix(in srgb, var(--blood) 30%, transparent);
+}
+
+/* ----------------------------------------------------------------------------
+   7. 互动机制 .itx-*
+   各类型统一基底 + 个性化
+   ---------------------------------------------------------------------------- */
+
+/* 通用提示文字 */
+.itx-prompt {
+  position: absolute;
+  bottom: var(--sp-5);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 30ch;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-wide);
+  color: var(--ink-dim);
+  opacity: 0.7;
+  pointer-events: none;
+  animation: prompt-breathe 4s ease-in-out infinite;
+}
+@keyframes prompt-breathe {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+
+/* 互动通用容器：铺满交互层 */
+.itx-flashlight,
+.itx-choice,
+.itx-find,
+.itx-sequence,
+.itx-hold,
+.itx-decrypt,
+.itx-trace,
+.itx-avoid,
+.itx-wait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* —— flashlight / reveal：手电揭示 —— */
+.itx-flashlight {
+  cursor: crosshair;
+}
+.itx-flashlight .flashlight-beam {
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--glow) 35%, transparent) 0%,
+    transparent 70%);
+  mix-blend-mode: screen;
+  transform: translate(-50%, -50%);
+  will-change: left, top;
+}
+.itx-flashlight .hidden-reveal {
+  opacity: 0;
+  transition: opacity var(--t-med) var(--ease);
+  color: var(--blood);
+  font-family: var(--font-serif);
+}
+.itx-flashlight .hidden-reveal.lit { opacity: 1; }
+
+/* —— choice：分支选择 —— */
+.itx-choice {
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+}
+.itx-choice .choice-opt {
+  width: min(420px, 90vw);
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-serif);
+  font-size: var(--fs-base);
+  text-align: left;
+  color: var(--ink-dim);
+  background: color-mix(in srgb, var(--fog) 30%, transparent);
+  border: 1px solid var(--line);
+  border-left: 2px solid color-mix(in srgb, var(--blood) 40%, transparent);
+  transition: all var(--t-fast) var(--ease);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.itx-choice .choice-opt:hover {
+  color: var(--ink);
+  border-left-color: var(--blood);
+  background: color-mix(in srgb, var(--fog) 55%, transparent);
+  transform: translateX(4px);
+}
+
+/* —— find：寻找隐藏物 —— */
+.itx-find { cursor: pointer; }
+.itx-find .find-target {
+  position: absolute;
+  opacity: 0.04;             /* 几乎不可见，需细看 */
+  color: var(--blood);
+  font-size: var(--fs-lg);
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.itx-find .find-target:hover { opacity: 0.22; }
+.itx-find .find-target.found {
+  opacity: 1;
+  color: var(--glow);
+  transform: scale(1.15);
+}
+
+/* —— sequence：序列记忆 —— */
+.itx-sequence {
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  max-width: 400px;
+  margin: 0 auto;
+  align-content: center;
+}
+.itx-sequence .seq-cell {
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--fog) 30%, transparent);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  pointer-events: auto;
+}
+.itx-sequence .seq-cell.flash,
+.itx-sequence .seq-cell.active {
+  background: color-mix(in srgb, var(--glow) 50%, var(--fog));
+  box-shadow: 0 0 30px var(--glow-soft);
+}
+.itx-sequence .seq-cell.wrong {
+  background: color-mix(in srgb, var(--blood) 50%, var(--fog));
+  box-shadow: 0 0 30px color-mix(in srgb, var(--blood) 40%, transparent);
+}
+
+/* —— hold：长按抵抗 —— */
+.itx-hold {
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.itx-hold .hold-target {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--ink-dim);
+  letter-spacing: var(--ls-wide);
+  cursor: pointer;
+  position: relative;
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--fog) 25%, transparent);
+  transition: box-shadow var(--t-fast) var(--ease);
+}
+.itx-hold .hold-target::after {
+  /* 进度环：用 --p (0..1) 由 JS 设置 conic 角度 */
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--glow) calc(var(--p, 0) * 360deg), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  opacity: 0.85;
+}
+.itx-hold .hold-target.active {
+  box-shadow: 0 0 40px var(--glow-soft);
+}
+
+/* —— decrypt：解密文字（放开选择，便于阅读对照）—— */
+.itx-decrypt {
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  font-family: var(--font-mono);
+}
+.itx-decrypt .cipher,
+.itx-decrypt .plain {
+  max-width: 40ch;
+  text-align: center;
+  letter-spacing: var(--ls-tight);
+  line-height: 2;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.itx-decrypt .cipher {
+  color: var(--ink-faint);
+  filter: blur(0.4px);
+}
+.itx-decrypt .plain { color: var(--glow); }
+.itx-decrypt input {
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--fog) 30%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  text-align: center;
+  letter-spacing: var(--ls-wide);
+  caret-color: var(--glow);
+}
+.itx-decrypt input:focus { outline: none; border-color: var(--glow); }
+
+/* —— trace：描线（SVG/canvas 在交互层）—— */
+.itx-trace { cursor: crosshair; touch-action: none; }
+.itx-trace svg,
+.itx-trace canvas { width: 100%; height: 100%; }
+.itx-trace .trace-path { stroke: var(--ink-faint); fill: none; stroke-width: 2; }
+.itx-trace .trace-drawn { stroke: var(--glow); fill: none; stroke-width: 3;
+  filter: drop-shadow(0 0 6px var(--glow-soft)); }
+
+/* —— avoid：避让（动态危险元素）—— */
+.itx-avoid { cursor: none; touch-action: none; }
+.itx-avoid .avoid-hazard {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--blood) 70%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+  will-change: transform;
+}
+.itx-avoid .avoid-player {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--glow);
+  box-shadow: 0 0 16px var(--glow-soft);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  will-change: left, top;
+}
+
+/* —— wait：等待/凝视 —— */
+.itx-wait { cursor: default; }
+.itx-wait .wait-focus {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+  box-shadow: 0 0 0 0 var(--glow-soft);
+  animation: wait-stare 5s ease-in-out infinite;
+}
+@keyframes wait-stare {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--glow) 30%, transparent); }
+  50%      { box-shadow: 0 0 0 18px transparent; }
+}
+
+/* ----------------------------------------------------------------------------
+   8. 响应式
+   ---------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  :root {
+    --measure: 26ch;
+    --sp-5: 2.2rem;
+    --sp-6: 3.2rem;
+    --fs-lg: 1.2rem;
+  }
+  .ui-hud { padding: var(--sp-2) var(--sp-3); }
+  .itx-prompt { bottom: var(--sp-4); }
+  .itx-sequence .seq-cell { width: 52px; height: 52px; }
+  .itx-hold .hold-target { width: 116px; height: 116px; }
+}
+
+/* 竖屏适配 */
+@media (orientation: portrait) {
+  .ui-narrative { padding-left: var(--sp-3); padding-right: var(--sp-3); }
+}
+
+/* 极窄高度（横屏手机） */
+@media (max-height: 460px) {
+  :root { --sp-5: 1.6rem; }
+  #boot-line { margin-top: var(--sp-2); }
+}
+
+/* ----------------------------------------------------------------------------
+   9. 无障碍
+   ---------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--glow) 80%, var(--ink));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* 移除非键盘焦点的默认轮廓 */
+:focus:not(:focus-visible) { outline: none; }
+
+/* 尊重系统/用户的减少动态偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* JS 可能加 body.reduce-motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation: none !important;
+  transition-duration: 0.001ms !important;
+}

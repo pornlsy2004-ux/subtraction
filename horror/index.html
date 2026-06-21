@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="《九百九十九》—— 一段下沉至 999 层的心理恐怖叙事。" />
+  <meta name="theme-color" content="#050507" />
+  <title>九百九十九 · 999</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/themes.css" />
+  <link rel="stylesheet" href="css/effects.css" />
+</head>
+<body>
+  <!-- 加载/进入幕 -->
+  <div id="boot" aria-hidden="false">
+    <div id="boot-inner">
+      <div id="boot-count">999</div>
+      <div id="boot-line">正在下沉…</div>
+    </div>
+  </div>
+
+  <!-- 游戏根容器：engine.js 在此建立各层 -->
+  <main id="game" role="application" aria-label="九百九十九"></main>
+
+  <noscript>
+    <div style="color:#caa;background:#050507;font-family:serif;padding:3rem;text-align:center;">
+      这段经历需要 JavaScript。请在支持的浏览器中开启它，然后继续下沉。
+    </div>
+  </noscript>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
