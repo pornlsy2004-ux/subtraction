@@ -309,22 +309,27 @@ export const Engine = {
     const resume = (typeof maxUnlocked === 'number' && maxUnlocked >= 1) ? maxUnlocked : (State.maxUnlocked || 1);
     const startId = (typeof id === 'number' && id >= 1) ? id : resume;
 
-    // onStart 回调约定：UI 调用 onStart(mode)
-    //   mode === 'continue' -> 从 resume 关继续
-    //   mode === 'restart'  -> 从第 1 关重新开始（清进度）
-    //   mode 为数字         -> 直接跳到该关（调试/章节选择）
-    //   省略 / 其它          -> 默认 startId
-    const onStart = (mode) => {
+    // onStart 回调约定（兼容两种调用形式）：
+    //   字符串/数字： 'continue' | 'restart' | <关号>
+    //   对象：        { mode:'continue'|'new'|'restart', level }
+    //   语义：continue=从 resume 关继续；new/restart=从第 1 关重开（清进度）；
+    //         数字=直接跳到该关；其它=默认 startId
+    const onStart = (arg) => {
       if (_started) return;
       _started = true;
+      // 归一化输入
+      let mode = arg, lvl = null;
+      if (arg && typeof arg === 'object') { mode = arg.mode; lvl = arg.level; }
       let target = startId;
-      if (mode === 'restart') {
+      if (mode === 'restart' || mode === 'new') {
         safe('State.reset', () => State.reset && State.reset());
         target = 1;
       } else if (mode === 'continue') {
-        target = resume;
+        target = (typeof lvl === 'number' && lvl >= 1) ? lvl : resume;
       } else if (typeof mode === 'number' && mode >= 1) {
         target = mode;
+      } else if (typeof lvl === 'number' && lvl >= 1) {
+        target = lvl;
       }
       this.loadLevel(target);
     };
